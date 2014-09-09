@@ -19,7 +19,7 @@ var express = require('express');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
 var app = express();
-var hash = require('hashid');
+var hash = require('./hashid');
 
 
 /**
