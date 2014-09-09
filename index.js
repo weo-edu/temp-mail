@@ -15,6 +15,8 @@ var REDIS_URL = process.env.REDISTOGO_URL || 'redis://localhost:6379';
 
 var simplesmtp = require('simplesmtp');
 var MailParser = require('mailparser').MailParser;
+var hash = require('./hashid');
+var _ = require('lodash');
 
 console.log('connected to redis...', REDIS_URL);
 var redis = require('redis-url').connect(REDIS_URL);
@@ -23,7 +25,7 @@ var cookieParser = require('cookie-parser');
 var session = require('express-session');
 var bodyParser = require('body-parser')
 var app = express();
-var hash = require('./hashid');
+
 
 
 /**
