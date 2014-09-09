@@ -92,9 +92,11 @@ app.get('/', function(req, res, next) {
 });
 
 app.post('/webhook', function(req, res) {
-  console.log('mail', req.body);
-  redis.lpush(REDIS_KEY + to, JSON.stringify(req.body), function(err) {
-    res.send(201)
+  var email = req.body;
+  _.each(email.toFull, function(to) {
+    redis.lpush(REDIS_KEY + to.Email, JSON.stringify(email), function(err) {
+      res.send(201)
+    });
   });
 });
 
