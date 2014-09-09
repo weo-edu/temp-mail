@@ -21,6 +21,7 @@ var redis = require('redis-url').connect(REDIS_URL);
 var express = require('express');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
+var bodyParser = require('body-parser')
 var app = express();
 var hash = require('./hashid');
 
@@ -29,7 +30,7 @@ var hash = require('./hashid');
  * SMTP server
  */
 
-var smtp = simplesmtp.createServer({
+/*var smtp = simplesmtp.createServer({
   enableAuthentication: true,
   requireAuthentication: false,
   SMTPBanner: 'tempsmtp',
@@ -58,13 +59,14 @@ smtp.on("data", function(connection, chunk){
 smtp.on("dataReady", function(connection, callback){
   connection.donecallback = callback;
   connection.mailparser.end();
-});
+});*/
 
 /**
  * HTTP server
  */
 
 app.use(cookieParser());
+app.use(bodyParser.json())
 app.use(session({secret: '1234567890QWERTY', cookie: {maxAge: MAX_AGE}}));
 
 app.get('/', function(req, res, next) {
@@ -86,6 +88,13 @@ app.get('/', function(req, res, next) {
       email: req.session.email,
       items: result.map(JSON.parse)
     });
+  });
+});
+
+app.post('/webhook', function(req, res) {
+  console.log('mail', req.body);
+  redis.lpush(REDIS_KEY + to, JSON.stringify(req.body), function(err) {
+    res.send(201)
   });
 });
 
