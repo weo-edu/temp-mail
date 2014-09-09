@@ -6,7 +6,7 @@ var SMTP_PORT = process.env.SMTPPORT || 2525;
 var HTTP_PORT = process.env.PORT || 2526;
 var REDIS_KEY = 'tempmail:'
 var MAX_AGE = 10 * 60 * 1000;
-var DOMAIN = 'localhost' || process.env.DOMAIN;
+var DOMAIN = process.env.DOMAIN || 'localhost';
 var REDIS_URL = process.env.REDISTOGO_URL || 'redis://localhost:6379';
 
 /**
