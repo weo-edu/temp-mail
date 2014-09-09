@@ -7,6 +7,7 @@ var HTTP_PORT = process.env.PORT || 2526;
 var REDIS_KEY = 'tempmail:'
 var MAX_AGE = 10 * 60 * 1000;
 var DOMAIN = 'localhost' || process.env.DOMAIN;
+var REDIS_URL = process.env.REDISTOGO_URL || 'redis://localhost:6379';
 
 /**
  * Modules
@@ -14,7 +15,7 @@ var DOMAIN = 'localhost' || process.env.DOMAIN;
 
 var simplesmtp = require('simplesmtp');
 var MailParser = require('mailparser').MailParser;
-var redis = require('redis').createClient();
+var redis = require('redis-url').connect(REDIS_URL);
 var express = require('express');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
