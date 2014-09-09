@@ -17,6 +17,7 @@ var simplesmtp = require('simplesmtp');
 var MailParser = require('mailparser').MailParser;
 var hash = require('./hashid');
 var _ = require('lodash');
+var async = require('async');
 
 console.log('connected to redis...', REDIS_URL);
 var redis = require('redis-url').connect(REDIS_URL);
@@ -95,10 +96,11 @@ app.get('/', function(req, res, next) {
 
 app.post('/webhook', function(req, res) {
   var email = req.body;
-  _.each(email.toFull, function(to) {
-    redis.lpush(REDIS_KEY + to.Email, JSON.stringify(email), function(err) {
-      res.send(201)
-    });
+  console.log('email', email)
+  async.each(email.ToFull, function(to, cb) {
+    redis.lpush(REDIS_KEY + to.Email, JSON.stringify(email), cb);
+  }, function(err) {
+    res.send(201);
   });
 });
 
