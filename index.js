@@ -77,7 +77,7 @@ app.get('/', function(req, res, next) {
     hash(function(err, id) {
       if (err) return next(err);
       req.session.email = id + '@' + DOMAIN;
-      redis.expire(REDIS_KEY + req.session.email, MAX_AGE / 1000, function(err) {
+      redis.expire(REDIS_KEY + req.session.email.toLowerCase(), MAX_AGE / 1000, function(err) {
         next(err);
       })
     })
@@ -85,10 +85,10 @@ app.get('/', function(req, res, next) {
     next();
   }
 }, function(req, res) {
-  redis.lrange(REDIS_KEY + req.session.email, 0, 9, function(err, result) {
+  redis.lrange(REDIS_KEY + req.session.email.toLowerCase(), 0, 9, function(err, result) {
     if (err) throw err;
     res.json({
-      email: req.session.email,
+      email: req.session.email.toLowerCase(),
       items: result.map(JSON.parse)
     });
   });
@@ -98,7 +98,7 @@ app.post('/webhook', function(req, res) {
   var email = req.body;
   console.log('email', email)
   async.each(email.ToFull, function(to, cb) {
-    redis.lpush(REDIS_KEY + to.Email, JSON.stringify(email), cb);
+    redis.lpush(REDIS_KEY + to.Email.toLowerCase(), JSON.stringify(email), cb);
   }, function(err) {
     res.send(201);
   });
