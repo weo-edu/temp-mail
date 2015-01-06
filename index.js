@@ -19,50 +19,13 @@ var hash = require('./hashid');
 var _ = require('lodash');
 var async = require('async');
 
-console.log('connected to redis...', REDIS_URL);
 var redis = require('redis-url').connect(REDIS_URL);
 var express = require('express');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
 var bodyParser = require('body-parser')
 var app = express();
-
-
-
-/**
- * SMTP server
- */
-
-/*var smtp = simplesmtp.createServer({
-  enableAuthentication: true,
-  requireAuthentication: false,
-  SMTPBanner: 'tempsmtp',
-  disableDNSValidation: true
-});
-
-smtp.listen(SMTP_PORT);
-console.log('SMTP server listening on port ' + SMTP_PORT);
-
-smtp.on('startData', function(connection) {
-  connection.mailparser = new MailParser();
-  connection.mailparser.on('end', function(mail_object) {
-    console.log('received email', mail_object);
-    _.each(mail_object.to, function(to) {
-      redis.lpush(tempmail + to, JSON.stringify(mail_object), function(err) {
-        connection.donecallback(null, 1); //XXX what is this supposed to be;
-      });
-    });
-  });
-});
-
-smtp.on("data", function(connection, chunk){
-  connection.mailparser.write(chunk);
-});
-
-smtp.on("dataReady", function(connection, callback){
-  connection.donecallback = callback;
-  connection.mailparser.end();
-});*/
+var noop = function(){};
 
 /**
  * HTTP server
@@ -77,9 +40,10 @@ app.get('/', function(req, res, next) {
     hash(function(err, id) {
       if (err) return next(err);
       req.session.email = id + '@' + DOMAIN;
+      console.log('expire in', MAX_AGE / 1000);
       redis.expire(REDIS_KEY + req.session.email, MAX_AGE / 1000, function(err) {
         next(err);
-      })
+      });
     })
   } else {
     next();
@@ -96,8 +60,9 @@ app.get('/', function(req, res, next) {
 
 app.post('/webhook', function(req, res) {
   var email = req.body;
-  console.log('email', email)
   async.each(email.ToFull, function(to, cb) {
+    console.log('expire in', MAX_AGE / 1000);
+    redis.expire(REDIS_KEY + to.Email, MAX_AGE / 1000, noop);
     redis.lpush(REDIS_KEY + to.Email, JSON.stringify(email), cb);
   }, function(err) {
     res.send(201);
