@@ -56,7 +56,6 @@ app.get('/', function(req, res, next) {
 
 app.post('/webhook', function(req, res) {
   var email = req.body;
-  console.log('')
   async.each(email.ToFull, function(to, cb) {
     console.log('expire in', MAX_AGE / 1000);
     redis.expire(to.Email.toLowerCase(), MAX_AGE / 1000, noop);
