@@ -2,9 +2,7 @@
  * Config
  */
 
-var SMTP_PORT = process.env.SMTPPORT || 2525;
 var HTTP_PORT = process.env.PORT || 2526;
-var REDIS_KEY = 'tempmail:'
 var MAX_AGE = 10 * 60 * 1000;
 var DOMAIN = process.env.DOMAIN || 'localhost';
 var REDIS_URL = process.env.REDISTOGO_URL || 'redis://localhost:6379';
@@ -13,10 +11,7 @@ var REDIS_URL = process.env.REDISTOGO_URL || 'redis://localhost:6379';
  * Modules
  */
 
-var simplesmtp = require('simplesmtp');
-var MailParser = require('mailparser').MailParser;
 var hash = require('./hashid');
-var _ = require('lodash');
 var async = require('async');
 
 var redis = require('redis-url').connect(REDIS_URL);
@@ -41,7 +36,7 @@ app.get('/', function(req, res, next) {
       if (err) return next(err);
       req.session.email = id + '@' + DOMAIN;
       console.log('expire in', MAX_AGE / 1000);
-      redis.expire(REDIS_KEY + req.session.email.toLowerCase(), MAX_AGE / 1000, function(err) {
+      redis.expire(req.session.email.toLowerCase(), MAX_AGE / 1000, function(err) {
         next(err);
       });
     })
@@ -49,7 +44,7 @@ app.get('/', function(req, res, next) {
     next();
   }
 }, function(req, res) {
-  redis.lrange(REDIS_KEY + req.session.email.toLowerCase(), 0, 9, function(err, result) {
+  redis.lrange(req.session.email.toLowerCase(), 0, 9, function(err, result) {
     console.log('err result', err, result);
     if (err) throw err;
     res.json({
@@ -61,10 +56,11 @@ app.get('/', function(req, res, next) {
 
 app.post('/webhook', function(req, res) {
   var email = req.body;
+  console.log('')
   async.each(email.ToFull, function(to, cb) {
     console.log('expire in', MAX_AGE / 1000);
-    redis.expire(REDIS_KEY + to.Email.toLowerCase(), MAX_AGE / 1000, noop);
-    redis.lpush(REDIS_KEY + to.Email.toLowerCase(), JSON.stringify(email), cb);
+    redis.expire(to.Email.toLowerCase(), MAX_AGE / 1000, noop);
+    redis.lpush(to.Email.toLowerCase(), JSON.stringify(email), cb);
   }, function(err) {
     res.send(201);
   });
