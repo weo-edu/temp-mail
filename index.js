@@ -50,6 +50,7 @@ app.get('/', function(req, res, next) {
   }
 }, function(req, res) {
   redis.lrange(REDIS_KEY + req.session.email.toLowerCase(), 0, 9, function(err, result) {
+    console.log('err result', err, result);
     if (err) throw err;
     res.json({
       email: req.session.email.toLowerCase(),
